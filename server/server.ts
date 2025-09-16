@@ -1,16 +1,10 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import cors from "cors";
-import fs from "fs";
-import path from "path";
+import db from "./data/db";
 
-// Setup
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// Speicherpfad
-const DATA_DIR = path.join(process.cwd(), "data");
-const DB_FILE = path.join(DATA_DIR, "db.txt");
 
 // Beispiel-Pläne
 const PLANS: { [key: string]: string[] } = {
@@ -19,53 +13,55 @@ const PLANS: { [key: string]: string[] } = {
   "Legs A": ["Kniebeugen", "Beinpresse", "Beincurls", "Wadenheben"],
 };
 
-// Stelle sicher, dass Ordner + Datei existieren
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, "");
-
-// 🔹 GET: Pläne + Übungen
-app.get("/api/plans", (_req: Request, res: Response) => {
+// GET: Pläne
+app.get("/api/plans", (_req, res) => {
   res.json({ plans: Object.keys(PLANS), exercisesByPlan: PLANS });
 });
 
-// 🔹 GET: Logs (optional mit ?date=YYYY-MM-DD)
-app.get("/api/logs", (req: Request, res: Response) => {
-  const dateFilter = (req.query.date as string | undefined)?.trim();
-  const content = fs.readFileSync(DB_FILE, "utf-8");
-  const lines = content.split("\n").filter(Boolean);
-  const logs = lines.map((line) => JSON.parse(line));
+// GET: Logs
+app.get("/api/logs", (req, res) => {
+  const dateFilter = req.query.date as string | undefined;
 
-  const filtered = dateFilter
-    ? logs.filter((l: any) => l.date === dateFilter)
-    : logs;
-  res.json({ logs: filtered });
+  let rows;
+  if (dateFilter) {
+    rows = db
+      .prepare("SELECT * FROM logs WHERE date = ? ORDER BY created_at DESC")
+      .all(dateFilter);
+  } else {
+    rows = db.prepare("SELECT * FROM logs ORDER BY created_at DESC").all();
+  }
+
+  res.json({ logs: rows });
 });
 
-// 🔹 POST: Training speichern
-app.post("/api/logs", (req: Request, res: Response) => {
-  const { date, split, entries } = req.body || {};
+// POST: Training speichern
+app.post("/api/logs", (req, res) => {
+  const { date, split, entries } = req.body;
   if (!date || !split || !Array.isArray(entries)) {
     return res.status(400).json({ error: "date, split, entries erforderlich" });
   }
 
-  const allowed = new Set(PLANS[split] || []);
-  const bad = entries.find((e: any) => !allowed.has(e.exercise));
-  if (bad) {
-    return res
-      .status(400)
-      .json({ error: `Übung nicht im Plan: ${bad.exercise}` });
-  }
+  const insert = db.prepare(`
+    INSERT INTO logs (date, split, exercise, weight, reps, notes)
+    VALUES (@date, @split, @exercise, @weight, @reps, @notes)
+  `);
 
-  const record = {
-    id: Date.now().toString(),
-    date,
-    split,
-    entries,
-    savedAt: new Date().toISOString(),
-  };
+  const tx = db.transaction((entries: any[]) => {
+    for (const e of entries) {
+      insert.run({
+        date,
+        split,
+        exercise: e.exercise,
+        weight: e.weight || null,
+        reps: e.reps || null,
+        notes: e.notes || null,
+      });
+    }
+  });
 
-  fs.appendFileSync(DB_FILE, JSON.stringify(record) + "\n", "utf-8");
-  res.json({ ok: true, record });
+  tx(entries);
+
+  res.json({ ok: true });
 });
 
 // Server starten

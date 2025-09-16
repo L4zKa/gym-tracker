@@ -4,6 +4,7 @@ import { API } from "../helpers/API";
 export default function LogsViewer() {
   const [date, setDate] = useState<string>("");
   const [logs, setLogs] = useState<any[]>([]);
+
   async function load() {
     const url = date
       ? `${API}/logs?date=${encodeURIComponent(date)}`
@@ -12,9 +13,32 @@ export default function LogsViewer() {
     const data = await res.json();
     setLogs(data.logs || []);
   }
+
   useEffect(() => {
     load();
   }, []);
+
+  // 🔹 Gruppieren nach date + split
+  const grouped = logs.reduce((acc: any, row: any) => {
+    const key = `${row.date}-${row.split}`;
+    if (!acc[key]) {
+      acc[key] = {
+        id: row.id,
+        date: row.date,
+        split: row.split,
+        entries: [],
+      };
+    }
+    acc[key].entries.push({
+      exercise: row.exercise,
+      weight: row.weight,
+      reps: row.reps,
+      notes: row.notes,
+    });
+    return acc;
+  }, {});
+
+  const groupedLogs = Object.values(grouped);
 
   return (
     <section>
@@ -35,7 +59,7 @@ export default function LogsViewer() {
         <button onClick={load}>Laden</button>
       </div>
       <div style={{ display: "grid", gap: 12 }}>
-        {logs.map((log) => (
+        {groupedLogs.map((log: any) => (
           <div
             key={log.id}
             style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}
@@ -53,7 +77,7 @@ export default function LogsViewer() {
             </ul>
           </div>
         ))}
-        {!logs.length && <i>Noch keine Einträge.</i>}
+        {!groupedLogs.length && <i>Noch keine Einträge.</i>}
       </div>
     </section>
   );

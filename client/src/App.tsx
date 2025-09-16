@@ -1,6 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import LogsViewer from "./components/LogsViewer";
 import { API } from "./helpers/API";
+import {
+  Button,
+  Dropdown,
+  Input,
+  Option,
+  Subtitle1,
+  Subtitle2,
+  Text,
+} from "@fluentui/react-components";
 
 type PlanName = string;
 type ExerciseName = string;
@@ -22,7 +31,7 @@ export default function App() {
   const [exByPlan, setExByPlan] = useState<Record<PlanName, ExerciseName[]>>(
     {}
   );
-  const [date, setDate] = useState<string>(() =>
+  const [date, setDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
   );
   const [split, setSplit] = useState<PlanName>("");
@@ -30,6 +39,7 @@ export default function App() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string>("");
 
+  // Pläne laden
   useEffect(() => {
     fetch(`${API}/plans`)
       .then((r) => r.json())
@@ -38,10 +48,10 @@ export default function App() {
         setExByPlan(data.exercisesByPlan);
         if (data.plans.length && !split) setSplit(data.plans[0]);
       })
-      .catch(() => setMessage("Konnte Pläne nicht laden"));
+      .catch(() => setMessage("❌ Konnte Pläne nicht laden"));
   }, []);
 
-  // Wenn Split wechselt → Einträge neu initialisieren mit Übungen des Splits
+  // Übungen beim Split-Wechsel initialisieren
   useEffect(() => {
     if (!split) return;
     const exercises = exByPlan[split] || [];
@@ -50,17 +60,20 @@ export default function App() {
     );
   }, [split, exByPlan]);
 
-  const canSave = useMemo(() => {
-    if (!date || !split || !entries.length) return false;
-    // Mindestens eine Übung mit Zahlen
-    return entries.some((e) => e.weight !== "" && e.reps !== "");
-  }, [date, split, entries]);
+  const canSave = useMemo(
+    () =>
+      !!date &&
+      !!split &&
+      entries.length > 0 &&
+      entries.some((e) => e.weight !== "" && e.reps !== ""),
+    [date, split, entries]
+  );
 
-  const updateEntry = (idx: number, patch: Partial<Entry>) => {
+  const updateEntry = useCallback((idx: number, patch: Partial<Entry>) => {
     setEntries((prev) =>
       prev.map((e, i) => (i === idx ? { ...e, ...patch } : e))
     );
-  };
+  }, []);
 
   async function save() {
     setSaving(true);
@@ -86,11 +99,8 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Speichern fehlgeschlagen");
-      }
-      setMessage("✅ Gespeichert (in data/db.txt)");
+      if (!res.ok) throw new Error("Speichern fehlgeschlagen");
+      setMessage("✅ Gespeichert");
     } catch (e: any) {
       setMessage("❌ " + e.message);
     } finally {
@@ -100,50 +110,50 @@ export default function App() {
 
   return (
     <div style={{ maxWidth: 900, margin: "20px auto", padding: 16 }}>
-      <h1>Gym Tracker (Date → Split → Übungen → Save to .txt)</h1>
+      <Subtitle1>🏋️ Gym Tracker</Subtitle1>
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: 12,
-          marginBottom: 16,
-        }}
-      >
-        <label>
-          <div>Datum</div>
-          <input
+      {/* Kopfzeile */}
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <div style={{ flex: 1 }}>
+          <Text block>Datum</Text>
+          <Input
             type="date"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(_, data) => setDate(data.value)}
           />
-        </label>
+        </div>
 
-        <label>
-          <div>Split</div>
-          <select value={split} onChange={(e) => setSplit(e.target.value)}>
+        <div style={{ flex: 1 }}>
+          <Text block>Split</Text>
+          <Dropdown
+            placeholder="Split auswählen"
+            selectedOptions={split ? [split] : []}
+            onOptionSelect={(_, data) => setSplit(data.optionValue as string)}
+          >
             {plans.map((p) => (
-              <option key={p} value={p}>
+              <Option key={p} value={p}>
                 {p}
-              </option>
+              </Option>
             ))}
-          </select>
-        </label>
+          </Dropdown>
+        </div>
 
-        <button
+        <Button
+          appearance="primary"
           disabled={!canSave || saving}
           onClick={save}
-          style={{ alignSelf: "end", height: 38 }}
         >
           {saving ? "Speichern…" : "Speichern"}
-        </button>
-      </section>
+        </Button>
+      </div>
 
-      <h2>Übungen für: {split || "—"}</h2>
+      <Subtitle2>Übungen für: {split || "—"}</Subtitle2>
+
+      {/* Schlichte HTML-Tabelle, aber mit Fluent-Inputs */}
       <div style={{ overflowX: "auto" }}>
         <table
-          cellPadding={8}
           style={{ width: "100%", borderCollapse: "collapse" }}
+          cellPadding={8}
         >
           <thead>
             <tr>
@@ -169,17 +179,14 @@ export default function App() {
                     textAlign: "center",
                   }}
                 >
-                  <input
+                  <Input
                     type="number"
-                    inputMode="decimal"
-                    value={e.weight}
-                    onChange={(ev) =>
+                    value={e.weight === "" ? "" : String(e.weight)}
+                    onChange={(_, data) =>
                       updateEntry(i, {
-                        weight:
-                          ev.target.value === "" ? "" : Number(ev.target.value),
+                        weight: data.value === "" ? "" : Number(data.value),
                       })
                     }
-                    style={{ width: 100 }}
                   />
                 </td>
                 <td
@@ -188,42 +195,44 @@ export default function App() {
                     textAlign: "center",
                   }}
                 >
-                  <input
+                  <Input
                     type="number"
-                    inputMode="numeric"
-                    value={e.reps}
-                    onChange={(ev) =>
+                    value={e.reps === "" ? "" : String(e.reps)}
+                    onChange={(_, data) =>
                       updateEntry(i, {
-                        reps:
-                          ev.target.value === "" ? "" : Number(ev.target.value),
+                        reps: data.value === "" ? "" : Number(data.value),
                       })
                     }
-                    style={{ width: 80 }}
                   />
                 </td>
                 <td style={{ borderBottom: "1px solid #f0f0f0" }}>
-                  <input
+                  <Input
                     type="text"
                     value={e.notes ?? ""}
-                    onChange={(ev) =>
-                      updateEntry(i, { notes: ev.target.value })
-                    }
-                    style={{ width: "100%" }}
                     placeholder="optional"
+                    onChange={(_, data) =>
+                      updateEntry(i, { notes: data.value })
+                    }
                   />
                 </td>
               </tr>
             ))}
             {!entries.length && (
               <tr>
-                <td colSpan={4}>Keine Übungen für diesen Split.</td>
+                <td colSpan={4}>
+                  <i>Keine Übungen für diesen Split.</i>
+                </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {!!message && <p style={{ marginTop: 12 }}>{message}</p>}
+      {!!message && (
+        <Text style={{ marginTop: 12 }} block>
+          {message}
+        </Text>
+      )}
 
       <hr style={{ margin: "24px 0" }} />
 

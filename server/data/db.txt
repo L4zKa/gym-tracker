@@ -1,1 +1,0 @@
-{"id":"1758050956067","date":"2025-09-16","split":"Push A","entries":[{"exercise":"Bankdrücken","weight":122,"reps":12,"notes":"Test"},{"exercise":"Schulterdrücken","weight":122,"reps":12,"notes":"Test"},{"exercise":"Trizepsdrücken","weight":122,"reps":12,"notes":"Test"}],"savedAt":"2025-09-16T19:29:16.067Z"}
