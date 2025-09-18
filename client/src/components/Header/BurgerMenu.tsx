@@ -7,31 +7,44 @@ import {
   MenuTrigger,
 } from "@fluentui/react-components";
 import {
-  Delete12Filled,
+  AddRegular,
   DismissRegular,
   TextAlignJustifyRegular,
 } from "@fluentui/react-icons";
 import LogsIcon from "../../../icons/LogsIcon";
-import { useState } from "react";
-import "./burgermenu.css";
+import { useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
+
+interface IMenuItem {
+  label: string;
+  icon: React.ReactElement;
+  link: string;
+}
 
 export default function BurgerMenu() {
-  const [clicked, setClicked] = useState<boolean>(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const navigate = useNavigate();
+
+  const menuItems: IMenuItem[] = [
+    { label: "Add Workout", icon: <AddRegular />, link: "/addWorkout" },
+    { label: "Log - Viewer", icon: <LogsIcon />, link: "/logViewer" },
+    { label: "Test", icon: <DismissRegular />, link: "/test" },
+  ];
   return (
-    <Menu>
+    <Menu onOpenChange={() => setMenuOpen(!menuOpen)}>
       <MenuTrigger>
         <Button
-          className={`rotate-btn ${clicked ? "rotated" : ""}`}
-          onClick={() => setClicked(!clicked)}
-          icon={clicked ? <DismissRegular /> : <TextAlignJustifyRegular />}
+          icon={menuOpen ? <DismissRegular /> : <TextAlignJustifyRegular />}
           appearance="transparent"
         />
       </MenuTrigger>
       <MenuPopover style={{ overflowY: "hidden" }}>
         <MenuList>
-          <MenuItem icon={<LogsIcon />}>Log - Viewer</MenuItem>
-          <MenuItem icon={<LogsIcon />}>Log - Viewer</MenuItem>
-          <MenuItem icon={<LogsIcon />}>Log - Viewer</MenuItem>
+          {menuItems.map((item) => (
+            <MenuItem onClick={() => navigate(item.link)} icon={item.icon}>
+              {item.label}
+            </MenuItem>
+          ))}
         </MenuList>
       </MenuPopover>
     </Menu>
