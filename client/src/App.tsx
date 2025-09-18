@@ -33,13 +33,7 @@ type Entry = {
 };
 
 export default function App() {
-  const [themeDark, setThemeDark] = useState<boolean>(false);
-  const toggleTheme = () => {
-    document.body.classList.toggle("dark");
-    setTimeout(() => {
-      setThemeDark(!themeDark);
-    }, 25);
-  };
+  const [isThemeDark, setIsThemeDark] = useState<boolean>(false);
   const [plans, setPlans] = useState<PlanName[]>([]);
   const [exByPlan, setExByPlan] = useState<Record<PlanName, ExerciseName[]>>(
     {}
@@ -51,6 +45,21 @@ export default function App() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string>("");
+
+  // Theme beim Start aus LocalStorage wiederherstellen
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark") setIsThemeDark(true);
+  }, []);
+
+  // Body-Klasse immer synchron zum State halten (keine toggle-Rennen)
+  useEffect(() => {
+    if (isThemeDark) {
+      document.body.classList.add("dark");
+    } else {
+      document.body.classList.remove("dark");
+    }
+  }, [isThemeDark]);
 
   // Pläne laden
   useEffect(() => {
@@ -121,34 +130,29 @@ export default function App() {
     }
   }
 
+  const toggleTheme = () => {
+    const newThemeIsDark = !isThemeDark;
+    setIsThemeDark(newThemeIsDark);
+    localStorage.setItem("theme", newThemeIsDark ? "dark" : "white");
+  };
+
   return (
     <FluentProvider
-      theme={themeDark ? teamsDarkTheme : webLightTheme}
+      theme={isThemeDark ? teamsDarkTheme : webLightTheme}
       style={{ padding: "2rem", background: "#ffffff00" }}
     >
       <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <>
-          <Subtitle1
-            style={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <TrackerIcon
-              height={32}
-              width={32}
-              style={{
-                marginRight: "5px",
-              }}
-            />
-            Gym Tracker
-          </Subtitle1>
-        </>
+        <Subtitle1 style={{ display: "flex", alignItems: "center" }}>
+          <TrackerIcon height={32} width={32} style={{ marginRight: "5px" }} />
+          Gym Tracker
+        </Subtitle1>
+
         <Button
           onClick={toggleTheme}
           size="large"
           icon={<WeatherSunnyRegular className="spinButton" />}
           appearance="transparent"
+          aria-label="Theme wechseln"
         />
       </div>
 
