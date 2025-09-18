@@ -1,0 +1,7 @@
+.rotate-btn {
+  transition: transform 0.3s ease-in-out;
+}
+
+.rotate-btn.rotated {
+  transform: rotate(180deg);
+}
