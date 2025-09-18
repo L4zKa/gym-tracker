@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import LogsViewer from "./components/LogViewer/LogsViewer";
-
+import { useEffect, useState } from "react";
+import { BrowserRouter } from "react-router-dom";
 import {
   FluentProvider,
   teamsDarkTheme,
@@ -8,6 +7,7 @@ import {
 } from "@fluentui/react-components";
 import "./App.css";
 import Header from "./components/Header/Header";
+import FrontendRoutes from "./FrontendRoutes/Routes";
 
 export default function App() {
   const [isThemeDark, setIsThemeDark] = useState<boolean>(false);
@@ -38,15 +38,11 @@ export default function App() {
       theme={isThemeDark ? teamsDarkTheme : webLightTheme}
       style={{ padding: "2rem", background: "#ffffff00" }}
     >
-      <Header onToggleTheme={toggleTheme} />
-
-      <LogsViewer />
-      {/*     
-      <div style={{ maxWidth: 900, margin: "20px auto", padding: 16 }}>
-        
-        <hr style={{ margin: "24px 0" }} />
-        
-      </div> */}
+      <BrowserRouter>
+        <Header onToggleTheme={toggleTheme} />
+        <hr style={{ marginBottom: "50px" }} />
+        <FrontendRoutes />
+      </BrowserRouter>
     </FluentProvider>
   );
 }

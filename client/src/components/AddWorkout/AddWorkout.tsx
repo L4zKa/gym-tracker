@@ -100,6 +100,7 @@ export default function AddWorkout() {
 
   return (
     <>
+      <h1>Add Workout</h1>
       {/* Kopfzeile */}
       <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
         <div style={{ flex: 1 }}>
