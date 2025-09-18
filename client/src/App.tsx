@@ -4,12 +4,18 @@ import { API } from "./helpers/API";
 import {
   Button,
   Dropdown,
+  FluentProvider,
   Input,
   Option,
   Subtitle1,
   Subtitle2,
+  teamsDarkTheme,
   Text,
+  webLightTheme,
 } from "@fluentui/react-components";
+import { WeatherSunnyRegular } from "@fluentui/react-icons";
+import TrackerIcon from "../icons/TrackerIcon";
+import "./App.css";
 
 type PlanName = string;
 type ExerciseName = string;
@@ -27,6 +33,13 @@ type Entry = {
 };
 
 export default function App() {
+  const [themeDark, setThemeDark] = useState<boolean>(false);
+  const toggleTheme = () => {
+    document.body.classList.toggle("dark");
+    setTimeout(() => {
+      setThemeDark(!themeDark);
+    }, 25);
+  };
   const [plans, setPlans] = useState<PlanName[]>([]);
   const [exByPlan, setExByPlan] = useState<Record<PlanName, ExerciseName[]>>(
     {}
@@ -41,7 +54,7 @@ export default function App() {
 
   // Pläne laden
   useEffect(() => {
-    fetch(`${API}/plans`)
+    fetch(`${API}/workoutplans`)
       .then((r) => r.json())
       .then((data: PlansResponse) => {
         setPlans(data.plans);
@@ -109,134 +122,167 @@ export default function App() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: "20px auto", padding: 16 }}>
-      <Subtitle1>🏋️ Gym Tracker</Subtitle1>
-
-      {/* Kopfzeile */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-        <div style={{ flex: 1 }}>
-          <Text block>Datum</Text>
-          <Input
-            type="date"
-            value={date}
-            onChange={(_, data) => setDate(data.value)}
-          />
-        </div>
-
-        <div style={{ flex: 1 }}>
-          <Text block>Split</Text>
-          <Dropdown
-            placeholder="Split auswählen"
-            selectedOptions={split ? [split] : []}
-            onOptionSelect={(_, data) => setSplit(data.optionValue as string)}
+    <FluentProvider
+      theme={themeDark ? teamsDarkTheme : webLightTheme}
+      style={{ padding: "2rem", background: "#ffffff00" }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <>
+          <Subtitle1
+            style={{
+              display: "flex",
+              alignItems: "center",
+            }}
           >
-            {plans.map((p) => (
-              <Option key={p} value={p}>
-                {p}
-              </Option>
-            ))}
-          </Dropdown>
+            <TrackerIcon
+              height={32}
+              width={32}
+              style={{
+                marginRight: "5px",
+              }}
+            />
+            Gym Tracker
+          </Subtitle1>
+        </>
+        <Button
+          onClick={toggleTheme}
+          size="large"
+          icon={<WeatherSunnyRegular className="spinButton" />}
+          appearance="transparent"
+        />
+      </div>
+
+      <div style={{ maxWidth: 900, margin: "20px auto", padding: 16 }}>
+        {/* Kopfzeile */}
+        <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+          <div style={{ flex: 1 }}>
+            <Text block>Datum</Text>
+            <Input
+              type="date"
+              value={date}
+              onChange={(_, data) => setDate(data.value)}
+            />
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <Text block>Split</Text>
+            <Dropdown
+              placeholder="Split auswählen"
+              selectedOptions={split ? [split] : []}
+              onOptionSelect={(_, data) => setSplit(data.optionValue as string)}
+            >
+              {plans.map((p) => (
+                <Option key={p} value={p}>
+                  {p}
+                </Option>
+              ))}
+            </Dropdown>
+          </div>
+
+          <Button
+            appearance="primary"
+            disabled={!canSave || saving}
+            onClick={save}
+          >
+            {saving ? "Speichern…" : "Speichern"}
+          </Button>
         </div>
 
-        <Button
-          appearance="primary"
-          disabled={!canSave || saving}
-          onClick={save}
-        >
-          {saving ? "Speichern…" : "Speichern"}
-        </Button>
-      </div>
+        <Subtitle2>Übungen für: {split || "—"}</Subtitle2>
 
-      <Subtitle2>Übungen für: {split || "—"}</Subtitle2>
-
-      {/* Schlichte HTML-Tabelle, aber mit Fluent-Inputs */}
-      <div style={{ overflowX: "auto" }}>
-        <table
-          style={{ width: "100%", borderCollapse: "collapse" }}
-          cellPadding={8}
-        >
-          <thead>
-            <tr>
-              <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>
-                Übung
-              </th>
-              <th style={{ borderBottom: "1px solid #ddd" }}>Gewicht (kg)</th>
-              <th style={{ borderBottom: "1px solid #ddd" }}>Wdh</th>
-              <th style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}>
-                Notizen
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((e, i) => (
-              <tr key={e.exercise}>
-                <td style={{ borderBottom: "1px solid #f0f0f0" }}>
-                  {e.exercise}
-                </td>
-                <td
-                  style={{
-                    borderBottom: "1px solid #f0f0f0",
-                    textAlign: "center",
-                  }}
-                >
-                  <Input
-                    type="number"
-                    value={e.weight === "" ? "" : String(e.weight)}
-                    onChange={(_, data) =>
-                      updateEntry(i, {
-                        weight: data.value === "" ? "" : Number(data.value),
-                      })
-                    }
-                  />
-                </td>
-                <td
-                  style={{
-                    borderBottom: "1px solid #f0f0f0",
-                    textAlign: "center",
-                  }}
-                >
-                  <Input
-                    type="number"
-                    value={e.reps === "" ? "" : String(e.reps)}
-                    onChange={(_, data) =>
-                      updateEntry(i, {
-                        reps: data.value === "" ? "" : Number(data.value),
-                      })
-                    }
-                  />
-                </td>
-                <td style={{ borderBottom: "1px solid #f0f0f0" }}>
-                  <Input
-                    type="text"
-                    value={e.notes ?? ""}
-                    placeholder="optional"
-                    onChange={(_, data) =>
-                      updateEntry(i, { notes: data.value })
-                    }
-                  />
-                </td>
-              </tr>
-            ))}
-            {!entries.length && (
+        {/* Schlichte HTML-Tabelle, aber mit Fluent-Inputs */}
+        <div style={{ overflowX: "auto" }}>
+          <table
+            style={{ width: "100%", borderCollapse: "collapse" }}
+            cellPadding={8}
+          >
+            <thead>
               <tr>
-                <td colSpan={4}>
-                  <i>Keine Übungen für diesen Split.</i>
-                </td>
+                <th
+                  style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}
+                >
+                  Übung
+                </th>
+                <th style={{ borderBottom: "1px solid #ddd" }}>Gewicht (kg)</th>
+                <th style={{ borderBottom: "1px solid #ddd" }}>Wdh</th>
+                <th
+                  style={{ borderBottom: "1px solid #ddd", textAlign: "left" }}
+                >
+                  Notizen
+                </th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {entries.map((e, i) => (
+                <tr key={e.exercise}>
+                  <td style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    {e.exercise}
+                  </td>
+                  <td
+                    style={{
+                      borderBottom: "1px solid #f0f0f0",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Input
+                      type="number"
+                      value={e.weight === "" ? "" : String(e.weight)}
+                      onChange={(_, data) =>
+                        updateEntry(i, {
+                          weight: data.value === "" ? "" : Number(data.value),
+                        })
+                      }
+                    />
+                  </td>
+                  <td
+                    style={{
+                      borderBottom: "1px solid #f0f0f0",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Input
+                      type="number"
+                      value={e.reps === "" ? "" : String(e.reps)}
+                      onChange={(_, data) =>
+                        updateEntry(i, {
+                          reps: data.value === "" ? "" : Number(data.value),
+                        })
+                      }
+                    />
+                  </td>
+                  <td style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <Input
+                      type="text"
+                      value={e.notes ?? ""}
+                      placeholder="optional"
+                      onChange={(_, data) =>
+                        updateEntry(i, { notes: data.value })
+                      }
+                    />
+                  </td>
+                </tr>
+              ))}
+              {!entries.length && (
+                <tr>
+                  <td colSpan={4}>
+                    <i>Keine Übungen für diesen Split.</i>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {!!message && (
+          <Text style={{ marginTop: 12 }} block>
+            {message}
+          </Text>
+        )}
+
+        <hr style={{ margin: "24px 0" }} />
+
+        <LogsViewer />
       </div>
-
-      {!!message && (
-        <Text style={{ marginTop: 12 }} block>
-          {message}
-        </Text>
-      )}
-
-      <hr style={{ margin: "24px 0" }} />
-
-      <LogsViewer />
-    </div>
+    </FluentProvider>
   );
 }

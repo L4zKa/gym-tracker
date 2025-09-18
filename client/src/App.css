@@ -1,7 +1,6 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
@@ -39,4 +38,22 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.spinButton {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.spinButton:active {
+  animation: spin 2s linear infinite; /* solange gedrückt wird */
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(720deg);
+  }
 }
