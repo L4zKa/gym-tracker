@@ -2,7 +2,7 @@ import { Button, Input, Label } from "@fluentui/react-components";
 import { DismissRegular } from "@fluentui/react-icons";
 import React, { useState } from "react";
 
-const WorkoutDay: React.FC = () => {
+export default function TemplateExercises() {
   const [exercises, setExercises] = useState<string[]>(["Bankdrücken", "Kniebeugen"]);
   const [newExercise, setNewExercise] = useState("");
 
@@ -28,7 +28,8 @@ const WorkoutDay: React.FC = () => {
               display: "flex",
               /* justifyContent: "space-between", */
               alignItems: "center",
-              marginBottom: "0.5rem",
+              borderTop: "1px solid",
+              padding: "15px",
             }}
           >
             <Button
@@ -51,6 +52,4 @@ const WorkoutDay: React.FC = () => {
       </div>
     </>
   );
-};
-
-export default WorkoutDay;
+}

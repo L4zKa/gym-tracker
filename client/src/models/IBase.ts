@@ -1,4 +1,4 @@
 export default interface IBase {
-  id: string;
+  id: number;
   createdAt: Date;
 }
