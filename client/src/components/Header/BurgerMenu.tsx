@@ -6,11 +6,7 @@ import {
   MenuPopover,
   MenuTrigger,
 } from "@fluentui/react-components";
-import {
-  AddRegular,
-  DismissRegular,
-  TextAlignJustifyRegular,
-} from "@fluentui/react-icons";
+import { AddRegular, DismissRegular, TextAlignJustifyRegular } from "@fluentui/react-icons";
 import LogsIcon from "../../../icons/LogsIcon";
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -44,10 +40,16 @@ export default function BurgerMenu() {
       </MenuTrigger>
       <MenuPopover style={{ overflowY: "hidden" }}>
         <MenuList>
-          {menuItems.map((item) => (
-            <MenuItem onClick={() => navigate(item.link)} icon={item.icon}>
-              {item.label}
-            </MenuItem>
+          {menuItems.map((item, i) => (
+            <a
+              style={{ textDecoration: "none" }}
+              key={i}
+              href={"http://localhost:5173" + item.link}
+            >
+              <MenuItem key={i} onClick={() => navigate(item.link)} icon={item.icon}>
+                {item.label}
+              </MenuItem>
+            </a>
           ))}
         </MenuList>
       </MenuPopover>
