@@ -26,9 +26,13 @@ export default function BurgerMenu() {
   const navigate = useNavigate();
 
   const menuItems: IMenuItem[] = [
+    {
+      label: "Wokrout Templates",
+      icon: <DismissRegular />,
+      link: "/workoutTemplates",
+    },
     { label: "Add Workout", icon: <AddRegular />, link: "/addWorkout" },
     { label: "Log - Viewer", icon: <LogsIcon />, link: "/logViewer" },
-    { label: "Test", icon: <DismissRegular />, link: "/test" },
   ];
   return (
     <Menu onOpenChange={() => setMenuOpen(!menuOpen)}>

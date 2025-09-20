@@ -24,16 +24,16 @@ CREATE TABLE IF NOT EXISTS template_exercises (
   default_weight REAL,
   default_reps INTEGER,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (template_id) REFERENCES training_day_templates(id) ON DELETE CASCADE
+  CONSTRAINT fk_template FOREIGN KEY (template_id) REFERENCES training_day_templates(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS training_days (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   date TEXT NOT NULL,
-  template_id INTEGER,      -- optional, auf welchem Template basiert
+  template_id INTEGER,     
   notes TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (template_id) REFERENCES training_day_templates(id)
+  CONSTRAINT fk_template_for_day FOREIGN KEY (template_id) REFERENCES training_day_templates(id)
 );
 
 CREATE TABLE IF NOT EXISTS training_exercises (
@@ -44,6 +44,6 @@ CREATE TABLE IF NOT EXISTS training_exercises (
   reps INTEGER,
   notes TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (training_day_id) REFERENCES training_days(id) ON DELETE CASCADE
+  CONSTRAINT fk_training_days FOREIGN KEY (training_day_id) REFERENCES training_days(id) ON DELETE CASCADE
 );
 `);
