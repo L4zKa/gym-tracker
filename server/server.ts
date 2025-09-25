@@ -1,24 +1,19 @@
 import express from "express";
-import cors from "cors";
-
-import templatesRoutes from "./routes/templates";
-import templateExercisesRoutes from "./routes/templateExercises";
-import trainingDaysRoutes from "./routes/trainingDays";
-import trainingExercisesRoutes from "./routes/trainingExercises";
-
-// import weitere Routes hier
+import bodyParser from "body-parser";
+import exercisesRoutes from "./routes/exercises";
+import plansRoutes from "./routes/plans";
+import trainingRoutes from "./routes/training";
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Prefix für jede Route
-app.use("/api/templates", templatesRoutes);
-app.use("/api/template-exercises", templateExercisesRoutes);
-app.use("/api/training-days", trainingDaysRoutes);
-app.use("/api/training-exercises", trainingExercisesRoutes);
-
 const PORT = 3000;
+
+app.use(bodyParser.json());
+
+// Routen
+app.use("/api/uebungen", exercisesRoutes);
+app.use("/api/plaene", plansRoutes);
+app.use("/api/training", trainingRoutes);
+
 app.listen(PORT, () => {
-  console.log(`API läuft auf http://localhost:${PORT}`);
+  console.log(`🚀 Server läuft auf http://localhost:${PORT}`);
 });

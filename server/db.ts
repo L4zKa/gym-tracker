@@ -1,49 +1,61 @@
+import sqlite3 from "sqlite3";
 import path from "path";
-import Database from "better-sqlite3";
-import fs from "fs";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-fs.mkdirSync(DATA_DIR, { recursive: true });
+const dbPath = path.resolve(__dirname, "data", "gymtracker.db");
+const db = new sqlite3.Database(dbPath);
 
-const DB_PATH = path.join(DATA_DIR, "workout.db");
-export const db = new Database(DB_PATH);
-db.pragma("foreign_keys = ON");
+// Tabellen anlegen
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS uebungen (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      beschreibung TEXT,
+      muskelgruppe TEXT
+    )
+  `);
 
-// Tabellen erstellen (wie oben gezeigt)
-db.exec(`
-CREATE TABLE IF NOT EXISTS training_day_templates (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS plaene (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      beschreibung TEXT
+    )
+  `);
 
-CREATE TABLE IF NOT EXISTS template_exercises (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  template_id INTEGER NOT NULL,
-  name TEXT NOT NULL,
-  default_weight REAL,
-  default_reps INTEGER,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_template FOREIGN KEY (template_id) REFERENCES training_day_templates(id) ON DELETE CASCADE
-);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS plan_uebungen (
+    plan_id INTEGER,
+    uebung_id INTEGER,
+    saetze INTEGER,
+    wiederholungen INTEGER,
+    PRIMARY KEY (plan_id, uebung_id),
+    FOREIGN KEY (plan_id) REFERENCES plaene(id),
+    FOREIGN KEY (uebung_id) REFERENCES uebungen(id)
+  )
+  `);
 
-CREATE TABLE IF NOT EXISTS training_days (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  date TEXT NOT NULL,
-  template_id INTEGER,     
-  notes TEXT,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_template_for_day FOREIGN KEY (template_id) REFERENCES training_day_templates(id)
-);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS trainingstage (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      datum TEXT NOT NULL,
+      plan_id INTEGER,
+      FOREIGN KEY (plan_id) REFERENCES plaene(id)
+    )
+  `);
 
-CREATE TABLE IF NOT EXISTS training_exercises (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  training_day_id INTEGER NOT NULL,
-  name TEXT NOT NULL,      
-  weight REAL,
-  reps INTEGER,
-  notes TEXT,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_training_days FOREIGN KEY (training_day_id) REFERENCES training_days(id) ON DELETE CASCADE
-);
-`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS trainingstage_uebungen (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      trainingstag_id INTEGER NOT NULL,
+      uebung_id INTEGER NOT NULL,
+      saetze INTEGER,
+      wiederholungen INTEGER,
+      gewicht REAL,
+      FOREIGN KEY (trainingstag_id) REFERENCES trainingstage(id),
+      FOREIGN KEY (uebung_id) REFERENCES uebungen(id)
+    )
+  `);
+});
+
+export default db;
