@@ -1,11 +1,16 @@
 import express from "express";
 import bodyParser from "body-parser";
+import cors from "cors";
+
 import exercisesRoutes from "./routes/exercises";
 import plansRoutes from "./routes/plans";
 import trainingRoutes from "./routes/training";
 
 const app = express();
 const PORT = 3000;
+
+// ✅ CORS aktivieren
+app.use(cors({ origin: "http://localhost:5173" }));
 
 app.use(bodyParser.json());
 

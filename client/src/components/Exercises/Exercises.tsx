@@ -1,17 +1,14 @@
 import { useState } from "react";
 import { API_URL } from "../../helpers/API";
 import type { Uebung } from "../../../../types";
+import AllExercises from "./AllExercises";
+import { AddRegular } from "@fluentui/react-icons";
+import { Button } from "@fluentui/react-components";
+import "../../frogtheme.css";
 
-export default function Übungen() {
+export default function Exercises() {
   const [newExercise, setNewExercise] = useState<Uebung>();
-  const [allExercises, setAllExercises] = useState<Uebung[]>();
   // === ÜBUNGEN ===
-  const getExercises = async () => {
-    const res = await fetch(`${API_URL}/uebungen`);
-    const data: Uebung[] = await res.json();
-    console.log("Übungen:", data);
-    setAllExercises(data);
-  };
 
   const addExercise = async () => {
     const res = await fetch(`${API_URL}/uebungen`, {
@@ -27,5 +24,13 @@ export default function Übungen() {
     console.log("Neue Übung:", data);
     setNewExercise(data);
   };
-  return <div></div>;
+  return (
+    <div>
+      <h1 className="frog-heading">Exercises</h1>
+      <Button onClick={() => addExercise()} icon={<AddRegular />}>
+        Add Exercise
+      </Button>
+      <AllExercises />
+    </div>
+  );
 }

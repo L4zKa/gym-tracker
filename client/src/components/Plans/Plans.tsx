@@ -2,7 +2,7 @@ import { useState } from "react";
 import { API_URL } from "../../helpers/API";
 import type { Plan, PlanUebung } from "../../../../types";
 
-export default function Pläne() {
+export default function Plans() {
   const [response, setResponse] = useState<any>(null);
 
   // === PLÄNE ===
@@ -30,5 +30,9 @@ export default function Pläne() {
     console.log("Neuer Plan:", data);
     setResponse(data);
   };
-  return <div></div>;
+  return (
+    <div>
+      <h1>Plans</h1>
+    </div>
+  );
 }

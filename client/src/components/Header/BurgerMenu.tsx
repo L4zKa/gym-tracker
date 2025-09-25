@@ -23,12 +23,13 @@ export default function BurgerMenu() {
 
   const menuItems: IMenuItem[] = [
     {
-      label: "Wokrout Templates",
+      label: "Exercises",
       icon: <DismissRegular />,
-      link: "/workoutTemplates",
+      link: "/exercises",
     },
-    { label: "Add Workout", icon: <AddRegular />, link: "/addWorkout" },
-    { label: "Log - Viewer", icon: <LogsIcon />, link: "/logViewer" },
+    { label: "Plans", icon: <AddRegular />, link: "/plans" },
+    { label: "Days", icon: <LogsIcon />, link: "/days" },
+    { label: "FrogTheme", icon: <LogsIcon />, link: "/frog" },
   ];
   return (
     <Menu onOpenChange={() => setMenuOpen(!menuOpen)}>
@@ -46,7 +47,7 @@ export default function BurgerMenu() {
               key={i}
               href={"http://localhost:5173" + item.link}
             >
-              <MenuItem key={i} onClick={() => navigate(item.link)} icon={item.icon}>
+              <MenuItem key={i} onClick={() => navigate(item.link)} /* icon={item.icon} */>
                 {item.label}
               </MenuItem>
             </a>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { API_URL } from "../../helpers/API";
 import type { Trainingstag, TrainingstagUebung } from "../../../../types";
 
-export default function Tage() {
+export default function Days() {
   const [response, setResponse] = useState<any>(null);
   // === TRAINING ===
   const getTrainingDays = async () => {
@@ -41,5 +41,9 @@ export default function Tage() {
     console.log("Übung zu Trainingstag:", data);
     setResponse(data);
   };
-  return <div></div>;
+  return (
+    <div>
+      <h1>Days</h1>
+    </div>
+  );
 }
